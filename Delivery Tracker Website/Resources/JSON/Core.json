@@ -3,7 +3,7 @@
 
   "Google":
   {
-    "APIKey": "AIzaSyBbNkNphqT2g9twrxbfOICaVi3kfm1UsCE"
+    "APIKey": "HIDDEN"
   },
 
   "Organisation" : {
@@ -35,4 +35,5 @@
   "LackPrivilegesMessage": "You lack the privileges to perform this action!",
 
   "Searchable": ["Name", "Address 1", "Address 2", "Postcode", "Deliverer", "Status"]
+
 }
