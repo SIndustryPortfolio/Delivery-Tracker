@@ -1,0 +1,12 @@
+{
+  "1":
+  {
+    "Name": "Deliverer",
+    "Description": "View deliveries"
+  },
+  "2":
+  {
+    "Name": "Manager",
+    "Description": "Manage deliveries: Create, Read, Update and Delete"
+  }
+}

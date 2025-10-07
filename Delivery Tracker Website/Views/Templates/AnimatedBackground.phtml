@@ -1,0 +1,36 @@
+<?php
+// Dirs
+$RootFolder = "././";
+$ResourcesFolder = $RootFolder . "Resources/";
+$ResourcesCSSFolder = $ResourcesFolder . "CSS/";
+
+?>
+
+<head>
+    <link rel="stylesheet" href= <?php echo $ResourcesCSSFolder . "AnimatedBackground.css"?>>
+</head>
+
+<body>
+    <script>
+        function CreateCircle() // Create the circle instance
+        {
+            let sizeW = Math.random() * 12;
+            let duration = Math.random() * 3;
+            let circle = document.createElement("div");
+            circle.setAttribute("class", "circle");
+            document.body.append(circle);
+            circle.style.width = 2 + sizeW + 'px';
+            circle.style.left = Math.random() *+ innerWidth + 'px';
+            circle.style.animationDuration = 2 + duration +  "s";
+            circle.style.zIndex = "-1";
+
+            setTimeout(function() {
+                document.body.removeChild(circle);
+            }, 5000) // 5 seconds
+        }
+
+        setInterval(function(){ // Infinite Loop
+            CreateCircle();
+        }, 100)
+    </script>
+</body>

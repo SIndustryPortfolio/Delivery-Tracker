@@ -1,0 +1,91 @@
+<?php
+// Dirs
+$RootFolder = "././";
+$ResourcesFolder = $RootFolder . "Resources/";
+$ResourcesCSSFolder = $ResourcesFolder . "CSS/";
+$ResourcesJSONFolder = $ResourcesFolder . "JSON/";
+
+// CORE
+$CoreJSONFile = file_get_contents($ResourcesJSONFolder . "Core.json");
+$CoreInfo = json_decode($CoreJSONFile, false);
+?>
+
+<body>
+    <div class="modal fade" id="ContactInfo" tabindex="-1" aria-labelledby="ContactInfoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ContactInfoTitle">Contact Info</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <i class="fa-regular fa-envelope"></i><strong><a class="link-dark" href="mailto: <?php echo $CoreInfo->Organisation->Email?>">Email: <?php echo $CoreInfo->Organisation->Email?></a></strong>
+                    <br>
+                    <i class="fa-solid fa-phone"></i><strong>Phone: <?php echo $CoreInfo->Organisation->Phone?></strong>
+                    <br>
+                    <i class="fa-solid fa-location-dot"></i><strong>Location: <?php echo $CoreInfo->Organisation->Location?></strong>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class = "FooterWhole text-center" style="z-index: 50; width: 100%; bottom: 0; position: fixed; background-color: var(--bs-dark) !important;">
+        <?php
+            if (!isset($_SESSION["Cookies"]) and isset($_SESSION["Account"]))
+            {
+                echo "<div class='AcceptCookies shadow-lg'>";
+                    echo "<h2>Accept Cookies?</h2>";
+                    echo "<p>Your secure login information will be stored via your browser's cookie system</p>";
+
+                    echo "<form action='' method='POST' style='display: inline-block; margin: 5px;'>";
+                        echo "<input type='hidden' name='Cookies' value='true'>";
+                        echo "<input type='submit' class='btn btn-success' value='Accept'>";
+                    echo "</form>";
+
+                    echo "<form action='' method='POST' style='display: inline-block; margin: 5px;'>";
+                        echo "<input type='hidden' name='Cookies' value='false'>";
+                        echo "<input type='submit' class='btn btn-secondary' value='Reject'>";
+                    echo "</form>";
+                echo "</div>";
+
+            }
+        ?>
+
+        <div class="Footer" onmouseover="onMouseEnter()" onmouseleave="onMouseLeave()">
+            <p class="font-weight-light" name="ExtraFooterContent" style="display: none;"><a href="#" class="text-center link-light" data-bs-toggle="modal" data-bs-target="#ContactInfo">Contact Info</a></p>
+            <p class="font-weight-light" style="color: white">Copyright © | <?php echo $CoreInfo->Organisation->Name?> | 2024</p>
+        </div>
+    </div>
+
+    <style>
+        .AcceptCookies
+        {
+            width: 100%;
+            background-color: lightgray;
+            display: block;
+        }
+    </style>
+
+    <script>
+        let ExtraContentElements = document.getElementsByName("ExtraFooterContent");
+
+        function onMouseEnter()
+        {
+            for (var i = 0; i < ExtraContentElements.length; i++)
+            {
+                ExtraContentElements[i].style.display = "inline";
+            }
+        }
+
+        function onMouseLeave()
+        {
+            for (var i = 0; i < ExtraContentElements.length; i++)
+            {
+                ExtraContentElements[i].style.display = "none";
+            }
+        }
+    </script>
+</body>

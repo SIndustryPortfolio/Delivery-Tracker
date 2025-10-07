@@ -1,0 +1,76 @@
+<?php
+
+    // Dirs
+    $RootFolder = "./";
+    $ResourcesFolder = $RootFolder . "Resources/";
+    $CSSFolder = $ResourcesFolder . "CSS/";
+    $ImagesFolder = $ResourcesFolder . "Images/";
+    $PHPModulesFolder = $RootFolder . "Modules/PHP/";
+
+    // Modules
+    require_once($PHPModulesFolder . "Shortcuts.php");
+
+    // CORE
+    $Shortcuts = new Shortcuts();
+
+
+    //
+
+    if (isset($View->Page->LoggedOut) and $View->Page->LoggedOut) {
+        $Shortcuts->RemoveCookie("Username");
+        $Shortcuts->RemoveCookie("Token");
+    }
+
+
+    if (isset($View->NewSession) and $View->NewSession)
+    {
+        require_once("Templates/IntroSplashScreen.phtml");
+    }
+
+    // IMPORT
+    require_once("Templates/Header.phtml");
+    require_once("Templates/Footer.phtml");
+    require_once("Templates/AnimatedBackground.phtml");
+    require_once("Templates/LoadingSplashScreen.phtml");
+
+
+?>
+
+<head>
+    <title>Login | <?php echo $View->CoreInfo->SiteName ?></title>
+    <link rel="stylesheet" href= <?php echo $CSSFolder . "Login.css"?>>
+</head>
+
+<body>
+
+    <br>
+    <br>
+
+    <div class="container d-flex align-items-center justify-content-center">
+        <div class="HoverCard card border-dark mb3 shadow-lg" style="width: 25%;">
+            <img class="card-img-top mx-auto" src="<?php echo $ImagesFolder . "Logo.png" ?>" style="width: 80%;">
+
+            <div class="card-body">
+                <form action="./Login.php" method="POST">
+                    <div class="form-group">
+                        <i class="fa-solid fa-user"></i>
+                        <strong for="Username">Username:</strong>
+                        <input type="text" class="form-control" id="Username" name="Username">
+                    </div>
+                    <div class="form-group">
+                        <i class="fa-solid fa-lock"></i>
+                        <strong for="Password">Password:</strong>
+                        <input type="password" class="form-control" id="Password" name="Password">
+                    </div>
+                    <input type="hidden" name="ClientRequest" value="Login">
+
+                    <br>
+
+                    <div class="text-center">
+                        <input type="submit" class="btn btn-success" value="Login">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>

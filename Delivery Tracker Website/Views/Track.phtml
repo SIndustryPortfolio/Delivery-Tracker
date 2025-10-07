@@ -1,0 +1,326 @@
+<?php
+// IMPORT
+require_once("Templates/Header.phtml");
+//require_once("Templates/AnimatedBackground.phtml");
+require_once("Templates/Footer.phtml");
+require_once("Templates/LoadingSplashScreen.phtml");
+
+// Dirs
+$RootFolder = "./";
+$ModulesFolder = $RootFolder . "Modules/";
+$ResourcesFolder = $RootFolder . "Resources/";
+$CSSFolder = $ResourcesFolder . "CSS/";
+$ImagesFolder = $ResourcesFolder . "Images/";
+$PHPModulesFolder = $ModulesFolder . "PHP/";
+$JSONFolder = $ResourcesFolder . "JSON/";
+
+// JSON
+$CoreJSONFile = file_get_contents($JSONFolder . "Core.json");
+$StatusJSONFile = file_get_contents($JSONFolder . "Status.json");
+$IconsJSONFile = file_get_contents($JSONFolder . "Icons.json");
+
+// Modules
+require_once($PHPModulesFolder . "Debug.php");
+require_once($PHPModulesFolder . "Shortcuts.php");
+
+// CORE
+$Delivery = $View->Page->Delivery;
+$IconsInfo = json_decode($IconsJSONFile, true);
+$CoreInfo = json_decode($CoreJSONFile, true);
+$StatusInfo = json_decode($StatusJSONFile, true);
+
+$Debug = new Debug();
+$Shortcuts = new Shortcuts();
+
+?>
+
+<head>
+    <title>Track | <?php echo $View->CoreInfo->SiteName ?></title>
+
+
+    <!--<script src="http://maps.google.com/maps/api/js?sensor=false"></script>-->
+
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=<?php echo $CoreInfo["Google"]["APIKey"] ?>&callback=initMap" type="text/javascript"></script>
+
+    <!--<script>
+        (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
+            key: "<?php echo $CoreInfo["Google"]["APIKey"] ?>",
+            v: "weekly",
+
+            // Use the 'v' parameter to indicate the version to use (weekly, beta, alpha, etc.).
+            // Add other bootstrap parameters as needed, using camel case.
+            //<script type="text/javascript" src='http://maps.google.com/maps/api/js?sensor=false'>
+        });
+    </script>-->
+</head>
+
+<body>
+    <?php
+        $AnimationDuration = 5;
+        $Delivery = $View->Page->Delivery;
+        $OrderOfStatus = $CoreInfo["OrderOfStatus"];
+        $IndexOfStatus = array_search($Delivery->GetStatus(), $OrderOfStatus);
+
+        if ($IndexOfStatus === false)
+        {
+            $IndexOfStatus = 0;
+            //return null;
+        }
+
+        $Debug->Log("Track.phtml | Size Of Order Status: " . sizeof($OrderOfStatus) . " | Index Of Status: " . $IndexOfStatus);
+
+        $PercentageComplete = ($IndexOfStatus / (sizeof($OrderOfStatus) - 1)) * 100;
+
+        echo "<div id='Delivery' style='display: none'>" . json_encode($Delivery) . "</div>";
+    ?>
+
+    <br>
+    <h1 class="text-center">Track <?php echo "Order: " . $Delivery->GetId() ?></h1>
+    <h5 class="text-center"><?php echo "Stage: " . $IndexOfStatus . " / " . (sizeof($OrderOfStatus) - 1) . " | Progress: " . $PercentageComplete . "%"  ?></h5>
+
+    <br>
+
+    <div class="container">
+        <!--<h3>Order Status: <?php echo $StatusInfo[$Delivery->GetStatus()]["Name"] ?></h3>-->
+
+        <div class="container" style="width: 90%;">
+            <?php
+
+                echo "<img id='DeliveryVan' class='' src='" . $ImagesFolder . "Truck.png' style='left: " . "0" . "%; width: 5%; position: relative;'>";
+                echo "<div class='input-group' style='margin-bottom: 30px;'>";
+                    echo "<label style='left: 0; position: absolute; display: inline-block'><strong>" . $StatusInfo[$OrderOfStatus[0]]["Name"] . "</strong></label>";
+                    echo "<label style='right: 0%; position: absolute; display: inline-block'><strong>" . $StatusInfo[$OrderOfStatus[sizeof($OrderOfStatus) - 1]]["Name"] . "</strong></label>";
+                echo "</div>";
+                //echo "<label style='width: 100%'><span style='left: 0;'>" . $StatusInfo[$OrderOfStatus[0]]["Name"] . "</span> <span style='left: 100%; position: relative;'>" . $StatusInfo[$OrderOfStatus[sizeof($OrderOfStatus) - 1]]["Name"] . "</span></label>";
+            ?>
+
+            <div id="ProgressBarBacking" style="width: 100%; display: block; background-color: grey; margin-top: 20px;">
+                <?php
+                    //if ($IndexOfStatus === false)
+                    //{
+                    //    return null;
+                    //}
+
+
+                    echo "<div id='ProgressBar' class='' style='width: " . "0" . "%; height: 25px; display: block; background-color: dodgerblue;'></div>"
+
+                ?>
+            </div>
+        </div>
+
+        <br>
+
+        <div class="container">
+            <div class="card shadow-lg">
+                <div class="card-content">
+                    <div class="card-body">
+                        <h3 class="card-title">Order Status: <?php echo $IconsInfo[$StatusInfo[$Delivery->GetStatus()]["Icon"]] . " " . $StatusInfo[$Delivery->GetStatus()]["Name"] ?></h3>
+                    </div>
+                </div>
+            </div>
+
+            <br>
+
+            <div class="row mx-auto" style="width: 80%;">
+                <?php
+                    // CORE
+                    $Index = 0;
+
+                    $ToExclude = array("Longitude", "Latitude", "DelPhoto");
+
+                    foreach($Delivery->GetDictionary() as $FieldName => $FieldValue)
+                    {
+                        if (array_search($FieldName, $ToExclude) !== false)
+                        {
+                            continue;
+                        }
+
+
+                        if ($Index % 3 ==0)
+                        {
+                            echo "</div>";
+                            echo "<div class='row mx-auto' style='width: 80%;'>";
+                        }
+
+                        echo "<div class='col'>";
+                            echo "<p><strong>" . $FieldName . ": </strong>" . $FieldValue . "</p>";
+                        echo "</div>";
+
+                        $Index += 1;
+                    }
+                ?>
+            </div>
+
+            <br>
+
+            <div class="card shadow-lg">
+                <div class="card-content">
+                    <div class="card-body">
+                        <h3 class="card-title">Geolocation</h3>
+                    </div>
+                </div>
+            </div>
+
+            <br>
+
+            <div class="row mx-auto" style="width: 80%;">
+                <?php
+                    $Index = 0;
+
+                    $GeolocationFields = array("Longitude", "Latitude");
+
+                    foreach($GeolocationFields as &$FieldName)
+                    {
+                        $FieldValue = $Delivery->{"Get" . $FieldName}();
+
+                        if ($Index % 3 ==0)
+                        {
+                            echo "</div>";
+                            echo "<div class='row mx-auto' style='width: 80%;'>";
+                        }
+
+                        echo "<div class='col'>";
+                        echo "<p><strong>" . $FieldName . ": </strong>" . $FieldValue . "</p>";
+                        echo "</div>";
+
+                        $Index += 1;
+                    }
+
+                ?>
+            </div>
+
+            <div id="Map" style="width: 100% height: 150px"></div>
+
+
+            <?php
+                $Shortcuts->GetCurrentLocation();
+            ?>
+
+            <script>
+                let map;
+                let MapDiv = document.getElementById("Map");
+
+                let Longitude = <?php echo $Delivery->GetLongitude() ?>;
+                let Latitude = <?php echo $Delivery->GetLatitude() ?>;
+
+                let DeliveryDiv = document.getElementById("Delivery");
+                let DeliveryInfo = JSON.parse(DeliveryDiv.innerText);
+
+                async function initMap() {
+                    // The location of Uluru
+                    const position = { lat: Latitude, lng: Longitude };
+                    // Request needed libraries.
+                    //@ts-ignore
+                    const { Map } = await google.maps.importLibrary("maps");
+                    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+                    const DeliveryPinImage = document.createElement("img");
+                    DeliveryPinImage.src = "./Resources/Images/PackageMarker.png";
+                    DeliveryPinImage.style.height = "60px";
+                    DeliveryPinImage.style.width = "60px";
+
+                    // The map, centered at Uluru
+                    map = new Map(MapDiv, {
+                        zoom: 15,
+                        center: position,
+                        mapId: "DEMO_MAP_ID",
+                    });
+
+                    // The marker, positioned at Uluru
+                    const marker = new AdvancedMarkerElement({
+                        map: map,
+                        position: position,
+                        title: toString(DeliveryInfo["Id"]),
+                        content: DeliveryPinImage
+                        //content: iconImage;
+                    });
+
+
+                    MapDiv.style.width = "100%";
+                    MapDiv.style.height = "40%";
+                }
+
+
+                window.addEventListener("load", () => {
+                    initMap();
+                });
+
+
+            </script>
+
+
+            <br>
+
+            <div class="card shadow-lg">
+                <div class="card-content">
+                    <div class="card-body">
+                        <h3 class="card-title">Delivery Photo</h3>
+                    </div>
+                </div>
+            </div>
+
+            <br>
+
+            <?php
+                if (!$Shortcuts->IsEmptyString($Delivery->GetDelPhoto()))
+                {
+                    echo "<img src='./Uploads/Delivery/" . $Delivery->GetDelPhoto() . "' class='rounded mx-auto d-block' alt='Delivery Photo' style='width: 40%; height: 350px; overflow: hidden;'>";
+                }
+                else
+                {
+                    echo "<img src='" . $ImagesFolder . "TemplateImage.png' class='rounded mx-auto d-block' alt='Delivery Photo' style='width: 40%; height: 350px; overflow: hidden;'>";
+                }
+
+            ?>
+
+            <br>
+
+            <div class="card shadow-lg">
+                <div class="card-content">
+                    <div class="card-body">
+                        <h3 class="card-title">QR Code</h3>
+                    </div>
+                </div>
+            </div>
+
+            <br>
+
+            <?php
+                $Url = $Shortcuts->GetRoot() . "/Track.php?Id=" . $Delivery->GetId();
+                $Shortcuts->CreateQrCode($Delivery->GetId() . "Track", $Url, "Large");
+            ?>
+        </div>
+
+        <br><br><br>
+
+        <style type="text/css">
+            .ProgressBar-Loaded
+            {
+                width: <?php echo $PercentageComplete ?>%!important;
+                transition-duration: <?php echo $AnimationDuration * ($PercentageComplete / 100) ?>s;
+            }
+
+            .DeliveryVan-Loaded
+            {
+                left: <?php echo $PercentageComplete ?>%!important;
+                transition-duration: <?php echo $AnimationDuration * ($PercentageComplete / 100) ?>s;
+            }
+        </style>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            // CORE
+            let ProgressBarDiv = document.getElementById("ProgressBar");
+            let DeliveryVanImage = document.getElementById("DeliveryVan");
+
+            // Functions
+            // INIT
+            console.log("Track.phtml | Adding Classes!");
+            //console.log(ProgressBarDiv);
+
+            ProgressBarDiv.classList.add("ProgressBar-Loaded");
+            DeliveryVanImage.classList.add("DeliveryVan-Loaded");
+        });
+    </script>
+</body>

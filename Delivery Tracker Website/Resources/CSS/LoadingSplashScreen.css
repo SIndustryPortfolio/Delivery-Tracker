@@ -1,0 +1,45 @@
+.Loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    transition: opacity 1s, visibility 1s;
+    z-index: 100;
+    pointer-events: none;
+
+}
+
+.Loader-hidden
+{
+    opacity: 0;
+    visibility: hidden;
+
+}
+
+.Loader::after
+{
+    content: "";
+    width: 100px;
+    height: 100px;
+    border: 15px solid lightgrey;
+    border-top-color: royalblue;
+    border-radius: 50%;
+    animation: Loading 1s ease infinite;
+}
+
+@keyframes Loading
+{
+    from
+    {
+        transform: rotate(0turn);
+    }
+    to
+    {
+        transform: rotate(1turn);
+    }
+}

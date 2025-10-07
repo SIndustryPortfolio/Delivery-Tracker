@@ -1,0 +1,86 @@
+<?php
+// IMPORT
+require_once("Templates/Header.phtml");
+require_once("Templates/AnimatedBackground.phtml");
+require_once("Templates/Footer.phtml");
+require_once("Templates/LoadingSplashScreen.phtml");
+
+// Dirs
+$RootFolder = "./";
+$ModulesFolder = $RootFolder . "Modules/";
+$ResourcesFolder = $RootFolder . "Resources/";
+$CSSFolder = $ResourcesFolder . "CSS/";
+$ImagesFolder = $ResourcesFolder . "Images/";
+$PHPModulesFolder = $ModulesFolder . "PHP/";
+
+// Modules
+require_once($PHPModulesFolder . "Debug.php");
+
+// CORE
+$Debug = new Debug();
+
+?>
+
+<head>
+    <title>Home | <?php echo $View->CoreInfo->SiteName ?></title>
+</head>
+
+<body>
+    <br>
+    <h1 class="text-center">Home - <?php echo $_SESSION["Account"]["Username"] ?></h1>
+    <!--<h5 class="text-center">User Access Level: <?php echo $_SESSION["Account"]["UserType"] ?></h5>-->
+    <h5 class="text-center">Last login: <?php echo $_SESSION["Account"]["LastLoginTime"] ?></h5>
+    <br>
+    <div class="container" style="width: 40%">
+        <div class="row">
+            <div class="col">
+                <div class="HoverCard card shadow-lg" style="/*width: 25%; display: inline-block; margin: 5px;*/">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">View Orders</h5>
+                        <br>
+                        <p class="card-text text-center">See all deliveries on your account.</p>
+                        <form action="./ViewOrders.php" method="POST">
+                            <div class="text-center">
+                                <input type="submit" class="btn btn-primary" value="View">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="HoverCard card shadow-lg" style="/*width: 25%; display: inline-block; margin: 5px;*/">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Create Order</h5>
+                        <br>
+                        <p class="card-text text-center">Create a new order</p>
+                        <form action="./Create.php" method="POST">
+                            <div class="text-center">
+                                <input type="submit" class="btn btn-primary" value="Create">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+
+        <div class="row">
+            <div class="col">
+                <div class="HoverCard card shadow-lg" style="/*width: 25%; display: inline-block; margin: 5px;*/">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">View Cheat Sheet</h5>
+                        <br>
+                        <p class="card-text text-center">View IDs with their respective values</p>
+                        <form action="./ViewCheatSheet.php" method="POST">
+                            <div class="text-center">
+                                <input type="submit" class="btn btn-secondary" value="View">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

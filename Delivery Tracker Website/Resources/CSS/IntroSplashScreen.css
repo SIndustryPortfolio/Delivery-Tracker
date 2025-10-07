@@ -1,0 +1,70 @@
+.Intro
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 300vw;
+    height: 100vh;
+    display: flex;
+    /*justify-content: center;
+    /align-items: center;*/
+    background-color: #161616;
+    z-index: 101;
+    transition: opacity 1s, visibility 1s;
+}
+
+.LogoContainer
+{
+    position: absolute;
+    top: 40%;
+    left: 0;
+    width: 100vw;
+    translate(-50%, -50%);
+}
+
+.SubLogo
+{
+    color: indianred;
+    opacity: 0;
+    bottom: -30px;
+}
+
+.Logo
+{
+    color: white;
+    opacity: 0;
+    bottom: -30px;
+}
+
+.SubLogo-active
+{
+    bottom: 0;
+    opacity: 1;
+    transition: ease-in 2s;
+}
+.SubLogo-hidden
+{
+    bottom: 30px;
+    opacity: 0;
+    transition: ease-out 2s;
+}
+
+.Logo-active
+{
+    bottom: 0;
+    opacity: 1;
+    transition: ease-in 2s;
+}
+
+.Logo-hidden
+{
+    bottom: 30px;
+    opacity: 0;
+    transition: ease-out 2s;
+}
+
+.Intro-hidden
+{
+    top: -100vh;
+    transition: ease-out 1s;
+}

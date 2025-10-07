@@ -1,0 +1,266 @@
+<?php
+    // IMPORT
+    require_once("Templates/Header.phtml");
+    require_once("Templates/Footer.phtml");
+    //require_once("Templates/AnimatedBackground.phtml");
+    require_once("Templates/LoadingSplashScreen.phtml");
+
+    // Dirs
+    $ResourcesFolder = "./Resources/";
+    $CSSFolder = $ResourcesFolder . "CSS/";
+    $ImagesFolder = $ResourcesFolder . "Images/";
+?>
+
+<head>
+    <title>Create | <?php echo $View->CoreInfo->SiteName ?></title>
+</head>
+
+<body>
+    <br>
+    <h1 class="text-center">Create Order</h1>
+    <h5 class="text-center" id="SubTitle"></h5>
+    <br>
+
+    <div id="ColumnNames">
+        <?php
+            foreach($View->Page->Columns as &$ColumnName)
+            {
+                echo "<input type='hidden' name='$ColumnName'/>";
+            }
+        ?>
+    </div>
+
+    <div class="container" style="width: 40%;">
+        <form action="" method="POST" id="CreateForm" enctype="multipart/form-data">
+
+            <div class="text-center">
+                <input type="submit" class="btn btn-primary mx-auto" value="↑ Push Deliveries ↑" style="width: 50%"/>
+
+                <br><br>
+
+                <!--<input type="button" class="btn btn-secondary mx-auto" value="Bulk Import" style="width: 25%"/>-->
+                <input class="form-control form-control-sm mx-auto" id="formFileSm" type="file" name="BulkImport" accept=".txt,.*txt" style="width: 50%" />
+            </div>
+
+            <br>
+
+            <script>
+                // CORE
+                let Index = 0;
+                let IndexesStored = new Array();
+                let CreateForm = document.getElementById("CreateForm");
+
+                let HiddenIndexInput = document.createElement("input");
+                HiddenIndexInput.type = "hidden";
+                HiddenIndexInput.name = "IndexesStored";
+                HiddenIndexInput.value = Index;
+
+                let SubTitleText = document.getElementById("SubTitle");
+
+                // Functions
+                // MECHANICS
+                function RemoveCreateButton(Id)
+                {
+                    // Functions
+                    // INIT
+                    let CreateButton = document.getElementById("CreateButton" + Id);
+
+                    CreateButton.remove();
+                }
+
+                function RemoveExpandable(Id)
+                {
+                    // Functions
+                    // INIT
+                    let ExpandableDiv = document.getElementById("Collapse" + Id);
+
+                    ExpandableDiv.remove();
+                }
+
+                function CreateExpandable(Id)
+                {
+                    // Functions
+                    // INIT
+                    let CollapseDiv = document.createElement("div");
+                    CollapseDiv.classList.add("collapse");
+                    CollapseDiv.classList.add("multi-collapse");
+                    CollapseDiv.id = "Collapse" + Id;
+
+                    let CardDiv = document.createElement("div");
+                    CardDiv.classList.add("Card");
+                    CardDiv.classList.add("card-body");
+
+                    let CardContainerDiv = document.createElement("div");
+                    CardContainerDiv.classList.add("container");
+
+                    let ColumnNamesDiv = document.getElementById("ColumnNames");
+                    let ColumnNamesChildren = ColumnNamesDiv.children;
+
+                    for (let i = 0; i < ColumnNamesChildren.length; i++)
+                    {
+                        let HiddenInput = ColumnNamesChildren[i];
+
+                        let FormGroupDiv = document.createElement("div");
+                        FormGroupDiv.classList.add("form-group");
+
+                        let InputTextLabel = document.createElement("strong");
+                        InputTextLabel.for = "Create" + HiddenInput.name + Id;
+                        InputTextLabel.innerHTML = HiddenInput.name + ": ";
+
+                        let InputTextBox = document.createElement("input");
+                        InputTextBox.type = "text";
+                        InputTextBox.classList.add("form-control");
+                        InputTextBox.id = "Create" + HiddenInput.name + Id;
+                        InputTextBox.name = "Create" + HiddenInput.name + Id;
+
+                        FormGroupDiv.appendChild(InputTextLabel);
+                        FormGroupDiv.appendChild(InputTextBox);
+
+                        CardContainerDiv.appendChild(FormGroupDiv);
+                    }
+
+                    CardDiv.appendChild(CardContainerDiv);
+                    CollapseDiv.appendChild(CardDiv);
+                    CreateForm.appendChild(CollapseDiv);
+                }
+
+                function AddCreateButton(TargetId)
+                {
+                    // CORE
+                    let NextId = TargetId + 1;
+                    let CreateButton = document.createElement("input");
+
+                    // Functions
+                    // MECHANICS
+                    function OnClicked()
+                    {
+                        // Functions
+                        // INIT
+                        if (CreateButton.getAttribute("aria-expanded") == "true")
+                        {
+                            //AddCreateButton(NextId);
+                            //CreateExpandable(NextId);
+                            if (IndexesStored.indexOf(TargetId) == -1)
+                            {
+                                console.log("Storing Index: " + TargetId);
+                                IndexesStored.push(TargetId);
+                            }
+
+                            let FoundNextButton = document.getElementById("CreateButton" + NextId);
+
+                            if (FoundNextButton)
+                            {
+                                return null;
+                            }
+
+                            Add(NextId);
+
+                            CreateButton.classList.remove("btn-dark");
+                            CreateButton.classList.add("btn-danger");
+                            CreateButton.value = "Remove";
+
+                        }
+                        else
+                        {
+                            Remove(TargetId);
+                            //RemoveCreateButton(TargetId);
+                            //RemoveExpandable(TargetId)
+                        }
+                        UpdateAll();
+                    }
+
+                    // INIT
+                    CreateButton.value = "Add New";
+                    CreateButton.type = "button";
+                    CreateButton.classList.add("btn");
+                    CreateButton.classList.add("btn-dark");
+                    CreateButton.style.width = "100%";
+                    CreateButton.style.marginTop = "5px";
+                    CreateButton.id = "CreateButton" + TargetId;
+                    CreateButton.setAttribute("data-bs-toggle", "collapse");
+                    CreateButton.setAttribute("data-bs-target", "#Collapse" + TargetId);
+                    CreateButton.setAttribute("aria-expanded", "false");
+                    CreateButton.setAttribute("aria-controls", "Collapse" + TargetId);
+                    CreateButton.onclick = OnClicked;
+
+                    CreateForm.appendChild(CreateButton);
+                }
+
+                function UpdateHidden()
+                {
+                    // Functions
+                    // INIT
+                    HiddenIndexInput.value = JSON.stringify(IndexesStored);
+                }
+
+                function UpdateSubTitle()
+                {
+                    // Functions
+                    // INIT
+                    let NumberToStore = IndexesStored.length;
+
+                    if (NumberToStore <= 0)
+                    {
+                        SubTitleText.innerHTML = "Click 'Add New' or use 'Bulk Import'";
+                    }
+                    else
+                    {
+                        SubTitleText.innerHTML = "To Push: " + NumberToStore + " Deliveries";
+                    }
+
+                }
+
+                function UpdateAll()
+                {
+                    // Functions
+                    // INIT
+                    UpdateHidden();
+                    UpdateSubTitle();
+                }
+
+
+                function Add(TargetId)
+                {
+                    // Functions
+                    // INIT
+
+                    AddCreateButton(TargetId);
+                    CreateExpandable(TargetId);
+
+                    UpdateAll();
+                }
+
+                function Remove(TargetId)
+                {
+                    // Functions
+                    // INIT
+                    IndexesStored.pop(IndexesStored.indexOf(TargetId));
+                    RemoveCreateButton(TargetId);
+                    RemoveExpandable(TargetId)
+
+                    UpdateAll();
+                }
+
+                // INIT
+                CreateForm.appendChild(HiddenIndexInput);
+
+                Add(Index);
+                //AddCreateButton(Index);
+                //CreateExpandable(Index);
+            </script>
+
+
+            <?php
+            /*foreach($View->Page->Columns as &$ColumnName)
+            {
+                echo "<div class='form-group'>";
+                echo "<strong for='" . $ColumnName ."'>$ColumnName: </strong>";
+                echo "<input type='text' class='form-control' id='$ColumnName' name='Create$ColumnName' value=''>";
+                echo "</div>";
+            }*/
+            ?>
+        </form>
+    </div>
+
+    <br><br>
+</body>

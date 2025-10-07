@@ -1,0 +1,38 @@
+{
+  "SiteName" : "\uD83D\uDCE6 Parcel Buddy",
+
+  "Google":
+  {
+    "APIKey": "AIzaSyBbNkNphqT2g9twrxbfOICaVi3kfm1UsCE"
+  },
+
+  "Organisation" : {
+    "Name" : "University Of Salford",
+    "Email": "hradvice@salford.ac.uk",
+    "Location" : "Salford",
+    "Phone": "0161 295 5000"
+  },
+
+  "TopBar" :
+  {
+    "Home":
+    {
+      "float": "left"
+    },
+    "Profile":
+    {
+      "Hidden": true,
+      "LoggedIn": true,
+      "float": "right",
+      "Icon": "Gear"
+    }
+  },
+
+  "OrderOfStatus": [0, 1, 2, 3, 5],
+
+  "ItemsPerPage": 10,
+
+  "LackPrivilegesMessage": "You lack the privileges to perform this action!",
+
+  "Searchable": ["Name", "Address 1", "Address 2", "Postcode", "Deliverer", "Status"]
+}

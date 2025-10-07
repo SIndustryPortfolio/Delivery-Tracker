@@ -1,0 +1,769 @@
+<?php
+    // IMPORT
+    require_once("Templates/Header.phtml");
+    require_once("Templates/Footer.phtml");
+    require_once("Templates/LoadingSplashScreen.phtml");
+    //require_once("Templates/AnimatedBackground.phtml");
+
+    // Dirs
+    $RootFolder = "./";
+    $ModulesFolder = $RootFolder . "Modules/";
+    $ResourcesFolder = $RootFolder . "Resources/";
+    $CSSFolder = $ResourcesFolder . "CSS/";
+    $ImagesFolder = $ResourcesFolder . "Images/";
+    $JSONFolder = $ResourcesFolder . "JSON/";
+    $PHPModulesFolder = $ModulesFolder . "PHP/";
+    $JavaScriptModulesFolder = $ModulesFolder . "JavaScript/";
+
+    // JSON
+    $IconsJSONFile = file_get_contents($JSONFolder . "Icons.json");
+    $StatusJSONFile = file_get_contents($JSONFolder . "Status.json");
+    $CoreJSONFile = file_get_contents($JSONFolder . "Core.json");
+
+    // Modules
+    require_once($PHPModulesFolder . "Debug.php");
+    require_once($PHPModulesFolder . "Shortcuts.php");
+    require_once($PHPModulesFolder . "UserTypeDataSet.php");
+
+    // CORE
+    $Debug = new Debug();
+    $Shortcuts = new Shortcuts();
+    $UserTypeDataSet = new UserTypeDataSet();
+    $IconsInfo = json_decode($IconsJSONFile, true);
+    $StatusInfo = json_decode($StatusJSONFile, true);
+    $CoreInfo = json_decode($CoreJSONFile, true);
+
+    $DeliveryDicts = array();
+    /*$TotalPages = ceil(sizeof($View->Page->Deliveries) / $View->CoreInfo->ItemsPerPage);
+    $StartIndex = 0;
+    $EndIndex = 0;
+    $ActualPageNumber = $View->Page->PageNumber - 1;
+
+
+    // FUNCTIONS
+    // INIT
+    if ($ActualPageNumber > 0)
+    {
+        $StartIndex = ($ActualPageNumber) * $View->CoreInfo->ItemsPerPage;
+    }
+
+    //$TotalPages = ceil(sizeof($View->Deliveries) / $View->CoreInfo->ItemsPerPage);
+
+    $Debug->Log("ViewOrders.phtml | PageNumber: " . $View->Page->PageNumber . " | TotalPages: " . $TotalPages);
+
+    if ($View->Page->PageNumber == $TotalPages)
+    {
+        $Debug->Log("ViewOrders.phtml | Last Page");
+        $EndIndex = $StartIndex + (sizeof($View->Page->Deliveries) - ($ActualPageNumber * $View->CoreInfo->ItemsPerPage));
+    }
+    else
+    {
+        $Debug->Log("ViewOrders.phtml | Other Page");
+        $EndIndex = ($StartIndex) + $View->CoreInfo->ItemsPerPage;
+    }
+
+    $Debug->Log("ViewOrders.phtml | StartIndex: " . $StartIndex . " | EndIndex: " . $EndIndex);*/
+    //Debug->Log("ViewOrders.phtml | Deliveries: " . $View->Deliveries);
+    //var_dump($View->Deliveries);
+
+    //var_dump($View->ColumnNames);
+
+
+    $TotalPages = $View->Page->TotalPages;
+    $StartIndex = $View->Page->StartIndex;
+    $EndIndex = $View->Page->EndIndex;
+    $ActualPageNumber = $TotalPages - 1;
+
+    foreach($View->Page->Deliveries as &$Delivery)
+    {
+        if (!isset($Delivery) or $Delivery === null)
+        {
+            continue;
+        }
+
+        echo "<div id='QrCode" . $Delivery->GetId() . "Map' style='display: none;'>";
+            $Url = $Shortcuts->GetRoot() . "/Track.php?Id=" . $Delivery->GetId();
+            $Shortcuts->CreateQrCode("QrCode" . $Delivery->GetId() . "Map", $Url, "Small");
+        echo "</div>";
+
+        $Dictionary = $Delivery->GetDictionary();
+        $Dictionary["Url"] = $Shortcuts->GetRoot() . "/Track.php?Id=" . $Delivery->GetId();
+
+        array_push($DeliveryDicts, $Dictionary);
+    }
+?>
+
+<head>
+    <title>View Orders | <?php echo $View->CoreInfo->SiteName ?></title>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=<?php echo $CoreInfo["Google"]["APIKey"] ?>&callback=initMap" type="text/javascript"></script>
+</head>
+
+<body>
+    <?php
+        echo "<div id='DeliveryDicts' style='display: none;'>". json_encode($DeliveryDicts) . "</div>";
+    ?>
+
+    <br>
+    <h1 class="text-center">View Orders</h1>
+    <h5 class="text-center"><?php echo "Page: " . $View->Page->PageNumber . " / " . $TotalPages . " | Results Found: " . /*sizeof($View->Page->Deliveries)*/ $View->Page->ResultsFound ?></h5>
+    <br>
+
+    <form action="" method="POST" class="mx-auto" style="width: 25%;">
+        <div class="input-group">
+            <input id="SearchBar" type="search" class="form-control rounded" placeholder="Search" aria-label="Search" aria-describedby="search-addon" name="Search" value="<?php if (isset($View->Page->SearchQuery)) { echo $View->Page->SearchQuery; } ?>"/>
+            <button type="submit" class="btn btn-outline-dark" data-mdb-ripple-init>search</button>
+        </div>
+
+        <div id="SearchDisplay" style="display: none; overflow-y: scroll; height: 20%;"></div>
+
+        <script>
+
+            // MECHANICS
+            function OnSearchBarChanged()
+            {
+                // Functions
+                // INIT
+
+                let SearchTerm = $("#SearchBar").val();
+                let SearchBarDocumentDiv = document.getElementById("SearchBar");
+
+                let PackagedData = {};
+
+                for (let i = 0; i < 8; i++)
+                {
+                    PackagedData["Filter" + i] = document.getElementsByName("Filter" + i)[0].value;
+                }
+
+                PackagedData["Search"] = SearchTerm;
+                PackagedData["Ajax"]  = true;
+
+                //console.log(SearchTerm);
+
+                if (SearchTerm == "") {
+                    //SearchBarDocumentDiv.innerText = "";
+                    $("#SearchDisplay").html("").hide()
+                }
+                else {
+                    $.ajax({
+                        type: "POST",
+                        url: "ViewOrders.php",
+                        data: PackagedData,
+                        success: function(data) {
+                            // Functions
+                            // INIT
+
+                            if (data == "" || data == null)
+                            {
+                                $("#SearchDisplay").html("").hide();
+                                return;
+                            }
+
+                            $("#SearchDisplay").html(data).show();
+                        },
+                        error: function(error)
+                        {
+                            $("#SearchDisplay").html("").hide();
+                        }
+                    });
+                }
+            }
+
+            // FUNCTIONS
+            // INIT
+
+            $("#SearchBar").on('keyup', function() {
+                return OnSearchBarChanged();
+            });
+
+            $("#SearchBar").on('search', OnSearchBarChanged);
+        </script>
+
+        <br>
+
+        <input style="width: 100%; border" type="button" class="btn btn-dark mx-auto" data-bs-toggle="collapse" data-bs-target="#multiCollapseFilter" aria-expanded="false" aria-controls="multiCollapseFilter" value="Filters">
+
+        <?php
+            //var_dump($View->Page->Filters);
+
+            $Index = 0;
+            $FiltersActive = 0;
+
+            echo "<div class='collapse multi-collapse' id='multiCollapseFilter'>";
+                echo "<div class='card card-body'>";
+                    echo "<div class='container' style=''>";
+                        echo "<div class='row'>";
+                        //echo "<div class='col'>";
+                        foreach($View->Page->Filters as $FilterStatusId => $FilterValue)
+                        {
+                            //$Debug->Log($FilterName);
+                            echo "<div class='col' style='margin: 5px;'>";
+
+                            if ($Index % 2 == 0)
+                            {
+                                //echo "<div class='w-100'></div>";
+                                //echo "</div>";
+                                //echo "<div class='row'>";
+                            }
+
+                            echo "<div class='form-check form-switch form-check-inline'>";
+                            if ($FilterValue)
+                            {
+                                echo "<input class='Checkbox form-check-input' type='checkbox' name='CheckboxFilter" . $FilterStatusId . "' onclick='CheckboxClicked($FilterStatusId)' checked>";
+                                echo "<input type='hidden' name='Filter" . $FilterStatusId . "' value='on'>";
+                            }
+                            else
+                            {
+                                echo "<input class='Checkbox form-check-input' type='checkbox' name='CheckboxFilter" . $FilterStatusId . "' onclick='CheckboxClicked($FilterStatusId)' >";
+                                echo "<input type='hidden' name='Filter" . $FilterStatusId . "' value='off'>";
+                                $FiltersActive += 1;
+                            }
+
+
+                            echo "<label class='form-check-label' for='Filter$FilterStatusId'>" . $StatusInfo[$FilterStatusId]["Name"] . "</label>";
+                            echo "</div>";
+
+                            echo "</div>";
+                            $Index += 1;
+                        }
+                        //echo "</div>";
+                        echo "</div>";
+                    echo "</div>";
+                echo "</div>";
+            echo "</div>";
+
+            echo "<br>";
+
+            echo "<p class='text-center mx-auto'>$FiltersActive filters active</p>";
+        ?>
+
+        <script>
+            function CheckboxClicked(FilterStatusId)
+            {
+
+
+                $Checkbox = document.getElementsByName("CheckboxFilter" + FilterStatusId)[0];
+                $HiddenElement = document.getElementsByName("Filter" + FilterStatusId)[0];
+
+                if ($Checkbox.checked)
+                {
+                    $HiddenElement.value = "on";
+                }
+                else
+                {
+                    $HiddenElement.value = "off";
+                }
+
+                OnSearchBarChanged();
+
+                console.log("Clicked | " + FilterStatusId + " | " + $HiddenElement.value);
+            }
+        </script>
+    </form>
+
+    <br>
+
+    <div id="Map" style="width: 100% height: 150px"></div>
+
+
+    <?php
+        $Shortcuts->GetCurrentLocation();
+    ?>
+
+    <script>
+        let map;
+        let MapDiv = document.getElementById("Map");
+        let DeliveryHiddenDiv= document.getElementById("DeliveryDicts");
+        let Loaded = false;
+
+        async function initMap() {
+            // The location of Uluru
+            const position = { lat: currentLatitude, lng: currentLongitude };
+            // Request needed libraries.
+            //@ts-ignore
+            const { Map } = await google.maps.importLibrary("maps");
+            const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+            // The map, centered at Uluru
+            map = new Map(MapDiv, {
+                zoom: 11,
+                center: position,
+                mapId: "DEMO_MAP_ID",
+            });
+
+            // The marker, positioned at Uluru
+            //const marker = new AdvancedMarkerElement({
+            //    map: map,
+            //    position: position,
+            //    title: "Uluru",
+            //    //content: iconImage;
+            //});
+
+            //let marker23 = new AdvancedMarkerElement({ map: map, position: { lat: 51.0, lng: 17.0 }, title: 'Uluru' });
+            //let marker23 = new AdvancedMarkerElement({ map: map, position: { lat: 51, lng: 17 }, title: '23' });
+
+            MapDiv.style.width = "100%";
+            MapDiv.style.height = "40%";
+
+            let DeliveryDicts = JSON.parse(DeliveryHiddenDiv.innerText);
+
+            //console.log(DeliveryDicts);
+
+            for await (Delivery of DeliveryDicts)
+            {
+
+                if (!("Longitude" in Delivery) || !("Latitude" in Delivery))
+                {
+                    continue;
+                }
+
+
+                const DeliveryPinImage = document.createElement("img");
+                DeliveryPinImage.src = "./Resources/Images/PackageMarker.png";
+                DeliveryPinImage.style.height = "60px";
+                DeliveryPinImage.style.width = "60px";
+
+                const newDelivery = new AdvancedMarkerElement({map: map, position: { lat: Delivery["Latitude"], lng: Delivery["Longitude"] }, title: toString(Delivery["Id"]), content: DeliveryPinImage});
+
+                const QrCodeDiv = document.getElementById("QrCode" + Delivery["Id"] + "Map");
+                QrCodeDiv.style.display = "block;"
+
+                const contentString =
+                    "<div id='content'>" +
+                        "<h3 class='text-center'>Order: " + Delivery["Id"] + "</h3>" +
+                        QrCodeDiv.outerHTML + QrCodeDiv.innerHTML + "<br>" +
+                        "<h6 class='text-center'><strong><a class='link link-secondary' href='" + Delivery["Url"] + "'>Track</a></strong></h6>" +
+                    "</div>";
+
+                const infoWindow = new google.maps.InfoWindow({
+                   content: contentString,
+                   ariaLabel: toString(Delivery["Id"])
+                });
+
+                newDelivery.addListener("click", () => {
+                   infoWindow.open({
+                      anchor: newDelivery,
+                      map
+                   });
+                });
+
+                //let p = document.createElement("p");
+                //p.innerText = JSON.stringify(Delivery);
+
+                //document.getElementsByTagName("Body")[0].appendChild(p);
+
+                //console.log(Delivery);
+                //new AdvancedMarkerElement({map: map, position { lat: Delivery["Latitude"], lng: Delivery["Longitude"]}, title: Delivery["Id"]});
+            }
+
+            //for (let i = 0; i < DeliveryDicts.length; i++)
+            //{
+            //    var Delivery = DeliveryDicts[i];
+
+            //    var Marker = new AdvancedMarkerElement({map: map, position { lat: Delivery["Latitude"], lng: Delivery["Longitude"]}, title: Delivery["Id"]});
+            //}
+
+            //console.log(DeliveryHiddenDiv.innerHTML);
+
+        }
+
+        window.addEventListener("load", () => {
+            initMap();
+        });
+    </script>
+
+
+    <br>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Name</th>
+                <th scope="col">Address 1</th>
+                <th scope="col">Address 2</th>
+                <th scope="col">Postcode</th>
+                <th scope="col">Deliverer</th>
+                <!--<th scope="col">Latitude</th>
+                <th scope="col">Longitude</th>-->
+                <th scope="col">Status</th>
+                <th scope="col">QR Code</th>
+                <!--<th scope="col">DelPhoto</th>-->
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+                //var_dump($View->Deliveries);
+                // FUNCTIONS
+                // MECHANICS
+
+                function SetupFormEssentials($IgnorePageNumber)
+                {
+                    // CORE
+                    global $View;
+
+                    // Functions
+                    // INIT
+                    if (isset($View->Page->SearchQuery))
+                    {
+                        echo "<input type='hidden' name='Search' value='" . $View->Page->SearchQuery . "'>";
+                    }
+
+                    if (isset($View->Page->Filters))
+                    {
+                        foreach ($View->Page->Filters as $FilterStatusId => $FilterValue)
+                        {
+                            echo "<input type='hidden' name='Filter$FilterStatusId' value='$FilterValue'>";
+                        }
+                    }
+
+                    if (!$IgnorePageNumber)
+                    {
+                        echo "<input type='hidden' name='PageNumber' value='" . $View->Page->PageNumber . "'>";
+                    }
+                }
+
+                function CreateEditModal($Delivery)
+                {
+                    // Functions
+                    // INIT
+
+                    echo "<div class='modal fade' id='Edit" . $Delivery->GetId() . "' tabindex='-1' aria-labelledby='Edit" . $Delivery->GetId() . "Label' aria-hidden='true'>";
+                        echo "<div class='modal-dialog'>";
+                            echo "<div class='modal-content'>";
+                                echo "<div class='modal-header'>";
+                                    echo "<h5 class='modal-title' id='Edit" . $Delivery->GetId() . "Title'>Edit Delivery</h5>";
+                                    echo "<button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>";
+                                echo "</div>";
+
+                                echo "<form action='' method='POST'>";
+                                    echo "<div class='modal-body'>";
+                                        //echo "<p>Confirm the deletion of '" . $Delivery->GetName() . "' parcel?</p>";
+                                        foreach ($Delivery->GetDictionary() as $FieldName => $FieldValue)
+                                        {
+                                            echo "<div class='form-group'>";
+                                                echo "<strong for='" . $FieldName ."'>$FieldName: </strong>";
+                                                echo "<input type='text' class='form-control' id='" . $FieldName . "' name='Update" . $FieldName . "' value='" . $FieldValue . "'>";
+                                            echo "</div>";
+                                        }
+                                    echo "</div>";
+
+                                    echo "<div class='modal-footer'>";
+                                        //echo "<form action='' method='POST' style='display: inline-block'>";
+                                            echo "<input type='hidden' name='Edit' value='" . $Delivery->GetId() . "'>";
+                                            echo "<input type='submit' class='btn btn-dark' value='Confirm'>";
+                                            SetupFormEssentials(false);
+                                        //echo "</form>";
+
+                                        echo "<button type='button' class='btn btn-secondary' data-bs-dismiss='modal' style='display: inline-block'>Close</button>";
+                                    echo "</div>";
+                                echo "</form>";
+                            echo "</div>";
+                        echo "</div>";
+                    echo "</div>";
+                }
+
+                function CreateViewModal($Delivery)
+                {
+                    // CORE
+                    global $Shortcuts;
+                    global $ImagesFolder;
+                    $ToIgnoreInList = array("DelPhoto");
+
+                    // Functions
+                    // INIT
+
+                    echo "<div class='modal fade' id='View" . $Delivery->GetId() . "' tabindex='-1' aria-labelledby='View" . $Delivery->GetId() . "Label' aria-hidden='true'>";
+                        echo "<div class='modal-dialog'>";
+                            echo "<div class='modal-content'>";
+                                echo "<div class='modal-header'>";
+                                    echo "<h5 class='modal-title' id='View" . $Delivery->GetId() . "Title'>Order: " . $Delivery->GetId() . "</h5>";
+                                    echo "<button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>";
+                                echo "</div>";
+
+                                echo "<div class='modal-body'>";
+                                    echo "<h5>Main Details:</h5>";
+                                    echo "<br>";
+                                    echo "<ul>";
+                                        $Index = 0;
+
+                                        echo "<div class='row'>";
+
+                                            foreach ($Delivery->GetDictionary() as $FieldName => $FieldValue)
+                                            {
+                                                if (array_search($FieldName, $ToIgnoreInList) !== false)
+                                                {
+                                                    continue;
+                                                }
+
+                                                if ($Index % 2 == 0)
+                                                {
+                                                    echo "</div>";
+                                                    echo "<div class='row'>";
+
+                                                }
+
+                                                echo "<div class='col'>";
+
+                                                    echo "<li>";
+                                                        echo "<p><strong>" . $FieldName . ": </strong>" . $FieldValue . "</p>";
+                                                    echo "</li>";
+
+                                                echo "</div>";
+
+                                                $Index += 1;
+                                            }
+
+                                        echo "</div>";
+                                    echo "</ul>";
+
+                                    echo "<div class='w-100'></div>";
+
+                                    echo "<h5>Delivery Photo:</h5>";
+                                    echo "<br>";
+
+                                    $DelPhoto = $Delivery->GetDelPhoto();
+
+                                    if (!$Shortcuts->IsEmptyString($DelPhoto))
+                                    {
+                                        echo "<img src='./Uploads/Delivery/" . $DelPhoto . "' class='rounded mx-auto d-block' alt='Delivery Photo' style='width: 90%; overflow: hidden; height: 250px;'>";
+                                    }
+                                    else
+                                    {
+                                        echo "<img src='" . $ImagesFolder . "TemplateImage.png' class='rounded mx-auto d-block' alt='Delivery Photo' style='width: 90%; overflow: hidden; height: 250px;'>";
+
+                                        echo "<form action='' method='POST' enctype='multipart/form-data'>";
+                                            echo "<input type='hidden' name='DeliveryId' value='" . $Delivery->GetId() . "'/>";
+
+                                            echo "<div class='container text-center'>";
+                                                echo "<input class='form-control form-control-sm mx-auto' id='formFileSm' type='file' name='ImageUpload' accept='.png,.jpeg,.jpg,.bmp,.giff,.tiff,.raw,.webp' style='width: 50%' />";
+                                                echo "<br>";
+                                                echo "<input type='submit' class='btn btn-dark' value='Upload'/>";
+                                            echo "</div>";
+                                        echo "</form>";
+
+                                    }
+
+                                    echo "<br>";
+                                    echo "<h5>QR Code:</h5>";
+                                    echo "<br>";
+
+                                    echo "<div class='text-center'>";
+                                        $Url = $Shortcuts->GetRoot() . "/Track.php?Id=" . $Delivery->GetId();
+                                        $Shortcuts->CreateQrCode($Delivery->GetId() . "modal", $Url, "Large");
+                                        echo "<br>";
+                                        echo "<a href='" . $Url .  "' class='link-dark'><strong>Track Order</strong></a>";
+                                    echo "</div>";
+                                echo "</div>";
+
+                                echo "<div class='modal-footer'>";
+                                    echo "<button type='button' class='btn btn-secondary' data-bs-dismiss='modal' style='display: inline-block'>Close</button>";
+                                echo "</div>";
+                            echo "</div>";
+                        echo "</div>";
+                    echo "</div>";
+                }
+
+                /*function CreateMapMarker($Delivery)
+                {
+                    // CORE
+                    global $Debug;
+
+                    // Functions
+                    // INIT
+
+                    //Debug->Log("ViewOrders.phtml | CreateMapMarker | Latitude: " . $Delivery->GetLatitude() . " | Longitude: " . $Delivery->GetLongitude());
+
+
+                    echo "<script>";
+                        echo "let marker" . $Delivery->GetId() . " = new AdvancedMarkerElement({ map: map, position: { lat: " . $Delivery->GetLatitude() . ", lng: " . $Delivery->GetLongitude() . " }, title: '" . $Delivery->GetId() . "' });";
+                        //    echo "map: map,";
+                        //    echo "position: { lat: parseFloat('" . $Delivery->GetLatitude() . "'), lng: parseFloat('" . $Delivery->GetLongitude() . "') },";
+                        //    echo "title: '" . $Delivery->GetId() . "',";
+                        //echo "});";
+
+                    echo "</script>";
+
+                    //const marker = new AdvancedMarkerElement({
+                        //    map: map,
+                        //    position: position,
+                        //    title: "Uluru",
+                        //    //content: iconImage
+                        //});
+                }*/
+
+                function CreateDeleteModal($Delivery)
+                {
+                    // Functions
+                    // INIT
+
+                    echo "<div class='modal fade' id='Delete" . $Delivery->GetId() . "' tabindex='-1' aria-labelledby='Delete" . $Delivery->GetId() . "Label' aria-hidden='true'>";
+                        echo "<div class='modal-dialog'>";
+                            echo "<div class='modal-content'>";
+                                echo "<div class='modal-header'>";
+                                    echo "<h5 class='modal-title' id='Delete" . $Delivery->GetId() . "Title'>Confirm Deletion</h5>";
+                                    echo "<button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>";
+                                echo "</div>";
+
+                                echo "<div class='modal-body'>";
+                                    echo "<p>Confirm the deletion of <strong>'" . $Delivery->GetName() . "'</strong> parcel?</p>";
+                                echo "</div>";
+
+                                echo "<div class='modal-footer'>";
+                                    echo "<form action='' method='POST' style='display: inline-block'>";
+                                        echo "<input type='hidden' name='Delete' value='" . $Delivery->GetId() . "'>";
+                                        echo "<input type='submit' class='btn btn-danger' value='Delete'>";
+                                        SetupFormEssentials(false);
+                                    echo "</form>";
+
+                                    echo "<button type='button' class='btn btn-secondary' data-bs-dismiss='modal' style='display: inline-block'>Close</button>";
+                                echo "</div>";
+                            echo "</div>";
+                        echo "</div>";
+                    echo "</div>";
+                }
+
+
+                // INIT
+                //$IdsCovered = array();
+
+                //var_dump($View->Page->OldDeliveries);
+
+                //echo "<br><br>";
+
+                //var_dump($View->Page->Deliveries);
+
+                foreach($View->Page->Deliveries as &$Delivery) //for ($i = $StartIndex; $i < $EndIndex; $i++)
+                {
+                    if (!isset($Delivery)) //(!isset($View->Page->Deliveries[$i]))
+                    {
+                        continue;
+                    }
+
+                    //$Debug->Log("ViewOrders.phtml | i: " . $i);
+
+                    //unset($Delivery);
+                    //$Delivery = $View->Page->Deliveries[$i];
+
+                    //var_dump($Delivery);
+
+                    //if (array_search($Delivery->GetId(), $IdsCovered) !== false)
+                    //{
+                    //    continue;
+                    //}
+
+                    //array_push($IdsCovered, $Delivery->GetId());
+                    $TrackUrl = $Shortcuts->GetRoot() . "/Track.php?Id=" . $Delivery->GetId();
+
+                    CreateDeleteModal($Delivery);
+                    CreateEditModal($Delivery);
+                    CreateViewModal($Delivery);
+                    //CreateMapMarker($Delivery);
+
+                    echo "<tr>";
+                        echo "<td>" . $Delivery->GetId() . "</td>";
+                        echo "<td>" . $Delivery->GetName() . "</td>";
+                        echo "<td>" . $Delivery->GetAddress1() . "</td>";
+                        echo "<td>" . $Delivery->GetAddress2() . "</td>";
+                        echo "<td>" . $Delivery->GetPostcode() . "</td>";
+                        echo "<td>" . $Delivery->GetDeliverer() . "</td>";
+                        //echo "<td>" . $Delivery->GetLatitude() . "</td>";
+                        //echo "<td>" . $Delivery->GetLongitude() . "</td>";
+
+
+                        $DeliveryStatusNumber = $Delivery->GetStatus();
+                        $DeliveryStatusInfo = $StatusInfo[$DeliveryStatusNumber];
+
+                        echo "<td>";
+
+                        echo $IconsInfo[$DeliveryStatusInfo["Icon"]] . " ";
+                        echo "<strong>" . $DeliveryStatusInfo["Name"] . "</strong>";
+
+                        echo "</td>";
+
+
+                        //echo "<td>" . $Delivery->GetDelPhoto() . "</td>";
+
+                        echo "<td>";
+                            $Shortcuts->CreateQrCode($Delivery->GetId(), $TrackUrl, "Small");
+                            //echo "<br>";
+                            echo "<p class='text-center'><a href='" . $TrackUrl . "' class='link-secondary'>Track</a></p>";
+                        echo "</td>";
+
+
+                        echo "<td>";
+                            if ($UserTypeDataSet->IsValidAccessLevel($_SESSION["Account"]["UserType"], "Manager"))
+                            {
+                                echo "<button type='button' class='btn btn-danger' data-bs-toggle='modal' data-bs-target='#Delete" . $Delivery->GetId() . "' style='display: inline-block; margin: 5px;'>Delete</button>";
+                            }
+
+                            echo "<button type='button' class='btn btn-dark' data-bs-toggle='modal' data-bs-target='#Edit" . $Delivery->GetId() . "' style='display: inline-block; margin: 5px;'>Edit</button>";
+                            echo "<button type='button' class='btn btn-secondary' data-bs-toggle='modal' data-bs-target='#View" . $Delivery->GetId() . "' style = 'display: inline-block; margin: 5px;'>View Details</button>";
+                            echo "<button type='button' class='btn btn-light' onclick='on" . $Delivery->GetId() . "Clicked()' style='display: inline-block; margin: 5px;'>Map</button>";
+
+                            echo "<script>";
+                                echo "function on" . $Delivery->GetId() . "Clicked() {";
+                                    echo "map.setCenter({ lat: " . $Delivery->GetLatitude() . ", lng: " . $Delivery->GetLongitude() . " });";
+                                    echo "map.setZoom(15);";
+                                echo "}";
+                            echo "</script>";
+
+                            //echo "<form action='' method='POST' style='display: inline-block'>";
+                            //    echo "<input type='hidden' name='ClientRequest' value='Edit'>";
+                            //    echo "<input type='submit' class='btn btn-dark' value='Edit'>";
+                            //echo "</form>";
+                        echo "</td>";
+                    echo "</tr>";
+                }
+            ?>
+        </tbody>
+    </table>
+
+    <br>
+
+    <div class="container mx-auto text-center">
+        <ol>
+            <?php
+                $PageNumber = $View->Page->PageNumber;
+
+                function CreateButton($PageIndex, $Text, $BtnStyle)
+                {
+                    // CORE
+                    global $View;
+
+                    // Functions
+                    // INIT
+                    echo "<form action='./ViewOrders.php' method='POST' style='display: inline-block; margin: 5px;'>";
+                        echo "<input type='hidden' name='PageNumber' value='$PageIndex'>";
+                        echo "<input class='btn btn-$BtnStyle' type='submit' value='$Text'>";
+
+                        SetupFormEssentials(true);
+
+                        //if (isset($View->Page->SearchQuery))
+                        //{
+                        //    echo "<input type='hidden' name='Search' value='" . $View->Page->SearchQuery . "'>";
+                        //}
+                    echo "</form>";
+                }
+
+                // INIT
+                if ($PageNumber > 1)
+                {
+                    CreateButton($PageNumber - 1, "<", "dark");
+                }
+
+                CreateButton($PageNumber, $PageNumber, "light");
+
+                if ($PageNumber < $TotalPages)
+                {
+                    CreateButton($PageNumber + 1, ">", "dark");
+                }
+            ?>
+        </ol>
+    </div>
+
+
+    <br>
+    <br>
+
+</body>

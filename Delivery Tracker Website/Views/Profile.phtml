@@ -1,0 +1,190 @@
+<?php
+    // IMPORT
+    require_once("Templates/Header.phtml");
+    require_once("Templates/Footer.phtml");
+    //require_once("Templates/AnimatedBackground.phtml");
+    require_once("Templates/LoadingSplashScreen.phtml");
+
+    // Dirs
+    $RootFolder = "./";
+    $ModulesFolder = $RootFolder . "Modules/";
+    $ResourcesFolder = $RootFolder . "Resources/";
+    $CSSFolder = $ResourcesFolder . "CSS/";
+    $ImagesFolder = $ResourcesFolder . "Images/";
+    $JSONFolder = $ResourcesFolder . "JSON/";
+    $PHPModulesFolder = $ModulesFolder . "PHP/";
+
+    // JSON
+    $UserTypeJSONFile = file_get_contents($JSONFolder . "UserType.json");
+    $UserJSONFile = file_get_contents($JSONFolder . "User.json");
+
+    // Modules
+    require_once($PHPModulesFolder . "Shortcuts.php");
+    require_once($PHPModulesFolder . "UserTypeDataSet.php");
+    require_once($PHPModulesFolder . "Debug.php");
+
+    // CORE
+    $UserInfo = json_decode($UserJSONFile, true);
+
+    $Debug = new Debug();
+    $UserTypeDataSet = new UserTypeDataSet();
+    $Shortcuts = new Shortcuts();
+
+    //$FieldModals = array(
+    //    "Email" => array("DisplayName" =>"Email", "Type" => "text"),
+    //    "Password" => array("DisplayName" =>"Password", "Type" => "password"),
+    //    "PhoneNumber" => array("DisplayName" =>"Phone Number", "Type" => "text")
+    //);
+
+    $UserTypeInfo = json_decode($UserTypeJSONFile, false);
+?>
+
+<head>
+    <title>Profile | <?php echo $View->CoreInfo->SiteName ?></title>
+</head>
+
+<body>
+    <br>
+    <h1 class="text-center">Profile</h1>
+    <br>
+
+    <?php
+        // MECHANICS
+        function CreateEditModal($FieldName, $DisplayName, $Type)
+        {
+            // Functions
+            // INIT
+            echo "<div class='modal fade' id='Edit" . $FieldName . "' tab-index = '-1' aria-labelledby='Edit" . $FieldName . "Label' aria-hidden='true'>";
+                echo "<div class='modal-dialog'>";
+                    echo "<div class='modal-content'>";
+                        echo "<div class='modal-header'>";
+                            echo "<h5 class='modal-title' id='Edit" . $FieldName . "Title'>Edit " . $DisplayName . "</h5>";
+                            echo "<button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>";
+                        echo "</div>";
+
+                        echo "<form action='' method='POST'>";
+                            echo "<div class='modal-body'>";
+                                echo "<div class='form-group'>";
+                                    echo "<strong for='Old" . $FieldName ."'>Old $DisplayName: </strong>";
+                                    echo "<input type='$Type' class='form-control' id='Old$FieldName' name='EditOld$FieldName' value=''>";
+                                echo "</div>";
+
+                                echo "<br><br>";
+
+                                echo "<div class='form-group'>";
+                                    echo "<strong for='New" . $FieldName ."'>New $DisplayName: </strong>";
+                                    echo "<input type='$Type' class='form-control' id='New$FieldName' name='EditNew$FieldName' value=''>";
+                                echo "</div>";
+
+                                echo "<div class='form-group'>";
+                                    echo "<strong for='ConfirmNew" . $FieldName ."'>Confirm $DisplayName: </strong>";
+                                    echo "<input type='$Type' class='form-control' id='ConfirmNew$FieldName' name='EditConfirmNew$FieldName' value=''>";
+                                echo "</div>";
+
+                            echo "</div>";
+
+                            echo "<div class='modal-footer'>";
+                                echo "<input type='hidden' name='FieldName' value='$FieldName'/>";
+                                echo "<input type='submit' class='btn btn-primary' value='Submit'/>";
+                                echo "<button type='button' class='btn btn-secondary' data-bs-dismiss='modal' style='display: inline-block'>Close</button>";
+                            echo "</div>";
+                        echo "</form>";
+                    echo "</div>";
+                echo "</div>";
+            echo "</div>";
+        }
+
+
+        // INIT
+        $FieldsToChange = array("Email", "Password", "PhoneNumber");
+
+        foreach($FieldsToChange as &$FieldName)
+        {
+            $Info = $UserInfo["Fields"][$FieldName];
+
+            CreateEditModal($FieldName, $Info["DisplayName"], $Info["Type"]);
+        }
+
+    ?>
+
+
+    <div class="container mx-auto" style="width: 80%;">
+        <div class="row">
+            <div class="col" style="">
+                <div class="card shadow-lg" style="">
+                    <div class="card-header">
+                        <h5 class="card-title">Profile Information</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <p><strong>Last login time:</strong> <?php echo $_SESSION["Account"]["LastLoginTime"] ?></p>
+                        <p><strong>User Type:</strong> <?php echo $_SESSION["Account"]["UserType"] ?></p>
+
+                        <?php
+                            $UserType = $UserTypeDataSet->GetUserTypeFromName($_SESSION["Account"]["UserType"]);
+                            $Debug->Log("Profile.phtml | UserType: " . $UserType);
+                        ?>
+
+                        <p><strong>Role Description:</strong> <?php echo $UserTypeInfo->{$UserType}->Description ?></p>
+                    </div>
+
+                    <div class="card-footer">
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card shadow-lg" style="">
+                    <div class="card-header">
+                        <h5 class="card-title">Personal Details</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <?php
+                            $FullEmail = $_SESSION["Account"]["Email"];
+                            $SeparatedEmail = explode("@", $FullEmail);
+                            $EmailName = $SeparatedEmail[0];
+                            $EmailDomain = $SeparatedEmail[1];
+
+                            $HiddenEmail = $Shortcuts->HideRestOfString($EmailName, floor(strlen($EmailName) / 2)) . "@" . $EmailDomain;
+                        ?>
+
+                        <p><strong>Email:</strong> <?php echo $HiddenEmail ?> <a href="#EditEmail" data-bs-toggle="modal" data-bs-target="#EditEmail" style="display: inline">Edit</a></p>
+
+                        <p><strong>Password:</strong> <?php echo "******" ?> <a href="#EditPassword" data-bs-toggle="modal" data-bs-target="#EditPassword" style="display: inline">Edit</a></p>
+
+                        <p><strong>Phone Number:</strong> <?php echo $Shortcuts->HideRestOfString($_SESSION["Account"]["PhoneNumber"], 4) ?> <a href="#EditPhoneNumber" data-bs-toggle="modal" data-bs-target="#EditPhoneNumber" style="display: inline">Edit</a></p>
+                    </div>
+
+                    <div class="card-footer">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+
+        <div class="row">
+            <div class="col">
+                <div class="card shadow-lg" style="">
+                    <div class="card-header">
+                        <h5 class="card-title">Actions</h5>
+                    </div>
+
+                    <div class="card-body text-center">
+                        <form action="./Login.php" method="POST">
+                            <input type="hidden" name="ClientRequest" value = "Logout">
+                            <input type="submit" class="btn btn-danger" value="Logout"/>
+                        </form>
+                    </div>
+
+                    <div class="card-footer">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

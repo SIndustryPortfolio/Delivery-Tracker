@@ -1,0 +1,33 @@
+
+body {
+    background-color: grey;
+}
+
+
+/*
+    Generic Animations
+ */
+
+/*body {
+    animation: FadeAnimation ease .5s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+}
+@keyframes FadeAnimation {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}*/
+
+.HoverCard
+{
+    transition-duration: 0.5s;
+}
+
+.HoverCard:hover
+{
+    transform: translate3D(0,-1px,0) scale(1.03);
+}

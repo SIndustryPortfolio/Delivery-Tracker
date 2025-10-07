@@ -1,0 +1,27 @@
+<?php
+// Dirs
+$RootFolder = "././";
+$ResourcesFolder = $RootFolder . "Resources/";
+$ResourcesCSSFolder = $ResourcesFolder . "CSS/";
+
+?>
+
+<head>
+    <link rel="stylesheet" href= <?php echo $ResourcesCSSFolder . "LoadingSplashScreen.css"?>>
+</head>
+
+<body>
+    <div class="loader"></div>
+
+    <script>
+        window.addEventListener("load", () => {
+            const Loader = document.querySelector(".loader");
+
+            Loader.classList.add("loader-hidden");
+
+            Loader.addEventListener("transitionend", () => {
+                Loader.remove();
+            })
+        })
+    </script>
+</body>

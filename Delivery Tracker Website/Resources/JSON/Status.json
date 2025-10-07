@@ -1,0 +1,42 @@
+{
+  "0":
+  {
+    "Name" : "Pending",
+    "Icon": "Clock"
+  },
+  "1":
+  {
+    "Name": "Info Received",
+    "Icon": "Inbox Tray"
+  },
+  "2":
+  {
+    "Name": "In Transit",
+    "Icon": "Delivery Truck"
+  },
+  "3":
+  {
+    "Name": "Out for Delivery",
+    "Icon": "Parcel"
+  },
+  "4":
+  {
+    "Name": "Failed Attempt",
+    "Icon": "Cross Mark"
+  },
+  "5":
+  {
+    "Name": "Delivered",
+    "Icon": "Check Mark"
+  },
+  "6":
+  {
+    "Name": "Exception",
+    "Icon": "Hammer and Wrench"
+  },
+  "7":
+  {
+    "Name": "Expired",
+    "Icon": "Multiply"
+  }
+}

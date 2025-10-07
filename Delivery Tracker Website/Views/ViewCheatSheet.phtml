@@ -1,0 +1,96 @@
+<?php
+// IMPORT
+require_once("Templates/Header.phtml");
+//require_once("Templates/AnimatedBackground.phtml");
+require_once("Templates/Footer.phtml");
+require_once("Templates/LoadingSplashScreen.phtml");
+
+// Dirs
+$RootFolder = "./";
+$ModulesFolder = $RootFolder . "Modules/";
+$ResourcesFolder = $RootFolder . "Resources/";
+$CSSFolder = $ResourcesFolder . "CSS/";
+$ImagesFolder = $ResourcesFolder . "Images/";
+$JSONFolder = $ResourcesFolder . "JSON/";
+$PHPModulesFolder = $ModulesFolder . "PHP/";
+
+// JSON
+$StatusJSONFile = file_get_contents($JSONFolder . "Status.json");
+$UserTypeJSONFile = file_get_contents($JSONFolder . "UserType.json");
+$IconJSONFile = file_get_contents($JSONFolder . "Icons.json");
+
+// Modules
+require_once($PHPModulesFolder . "Debug.php");
+
+// CORE
+$UserTypeInfo = json_decode($UserTypeJSONFile, true);
+$IconsInfo = json_decode($IconJSONFile, true);
+$StatusInfo = json_decode($StatusJSONFile, true);
+$Debug = new Debug();
+
+?>
+
+<head>
+    <title>Home | <?php echo $View->CoreInfo->SiteName ?></title>
+</head>
+
+<body>
+    <br>
+    <h1 class="text-center">View Cheat Sheet</h1>
+    <br>
+
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <div class="card shadow-lg">
+                    <div class="card-content">
+                        <div class="card-header">
+                            <h5 class="card-title">Status Codes</h5>
+                        </div>
+
+                        <div class="card-body">
+                            <ul>
+                                <?php
+
+                                    foreach($StatusInfo as $Id => $Info)
+                                    {
+                                        echo "<li>";
+                                            echo "<p><strong>" . $Id . ": </strong>" . $IconsInfo[$Info["Icon"]] . $Info["Name"] .  "</p>";
+
+                                        echo "</li>";
+                                    }
+
+                                ?>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card shadow-lg">
+                    <div class="card-content">
+                        <div class="card-header">
+                            <h5 class="card-title">User Types</h5>
+                        </div>
+
+                        <div class="card-body">
+                            <ul>
+                                <?php
+                                    foreach($UserTypeInfo as $Id => $Info)
+                                    {
+                                        echo "<li>";
+                                            echo "<p><strong>" . $Id . ": </strong>" . $Info["Name"] . "</p>";
+                                        echo "</li>";
+                                    }
+                                ?>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>

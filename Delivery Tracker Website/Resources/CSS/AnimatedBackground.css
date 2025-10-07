@@ -1,0 +1,64 @@
+:root
+{
+    --PrimaryColour: black;
+    --SecondaryColour: white;
+}
+
+*
+{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body
+{
+    height: 100vh;
+    overflow: hidden;
+}
+
+.circle
+{
+    position: absolute;
+    bottom: 0;
+    width: 20px;
+    aspect-ratio: 1/1;
+    background: var(--SecondaryColour);
+    box-shadow: 0 0 10px var(--PrimaryColour),
+    0 0 20px var(--PrimaryColour),
+    0 0 30px var(--PrimaryColour),
+    0 0 50px var(--PrimaryColour);
+    border-radius: 50%;
+    animation: animate 5s linear forwards;
+}
+
+@keyframes animate
+{
+    0%
+    {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    50%
+    {
+        opacity: 1;
+    }
+    100%
+    {
+        transform: translateY(-100vh);
+        opacity: 0;
+    }
+}
+
+.circle::before
+{
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 25%;
+    width: 50%;
+    height: 100vh;
+    opacity: 0.5;
+    background: linear-gradient(var(--PrimaryColour), transparent);
+
+}

@@ -1,0 +1,26 @@
+{
+  "Fields":
+  {
+    "Email":
+    {
+      "DisplayName": "Email",
+      "Type": "text",
+      "Validate": true,
+      "CaseSensitive": false
+    },
+    "PhoneNumber":
+    {
+      "DisplayName": "Phone Number",
+      "Type": "text",
+      "Validate": true,
+      "CaseSensitive": false
+    },
+    "Password":
+    {
+      "DisplayName": "Password",
+      "Type": "password",
+      "Validate": false,
+      "CaseSensitive": true
+    }
+  }
+}

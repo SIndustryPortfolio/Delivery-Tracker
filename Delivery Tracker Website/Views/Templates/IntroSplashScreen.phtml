@@ -1,0 +1,66 @@
+<?php
+// Dirs
+$RootFolder = "././";
+$ResourcesFolder = $RootFolder . "Resources/";
+$ResourcesCSSFolder = $ResourcesFolder . "CSS/";
+$ModulesFolder = $RootFolder . "Modules/";
+$JSONFolder = $ResourcesFolder . "JSON/";
+
+// JSON
+$CoreJSONFile = file_get_contents($JSONFolder . "Core.json");
+
+// CORE
+$CoreInfo = json_decode($CoreJSONFile, false);
+?>
+
+<head>
+    <link rel="stylesheet" href=<?php echo $ResourcesCSSFolder . "IntroSplashScreen.css"?>>
+</head>
+
+<body>
+    <div class="Intro">
+        <div class="LogoContainer">
+            <h1 class="Logo text-center">
+                <?php echo $CoreInfo->SiteName ?>
+            </h1>
+            <h4 class="SubLogo text-center">
+                <?php echo $CoreInfo->Organisation->Name ?>
+            </h4>
+        </div>
+    </div>
+
+    <script>
+        // CORE
+        let IntroDiv = document.querySelector(".Intro");
+        let Logo = document.querySelector(".Logo");
+        let SubLogo = document.querySelector(".SubLogo");
+
+
+        // INIT
+        window.addEventListener("load", ()=>{
+
+            // Functions
+            // INIT
+            Logo.classList.add("Logo-active");
+
+            Logo.addEventListener("transitionend", () => {
+                SubLogo.classList.add("SubLogo-active");
+
+                SubLogo.addEventListener("transitionend", () => {
+                    setTimeout(function(){
+                        IntroDiv.classList.add("Intro-hidden");
+
+                        IntroDiv.addEventListener("transitionend", () => {
+                            IntroDiv.remove();
+                        })
+                    }, 2000);
+
+                })
+
+            })
+
+
+        })
+    </script>
+
+</body>
