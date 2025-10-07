@@ -7,10 +7,10 @@
   },
 
   "Organisation" : {
-    "Name" : "University Of Salford",
-    "Email": "hradvice@salford.ac.uk",
-    "Location" : "Salford",
-    "Phone": "0161 295 5000"
+    "Name" : "Some Organisation",
+    "Email": "Our_organisation@outlook.com",
+    "Location" : "London",
+    "Phone": "1234 56789"
   },
 
   "TopBar" :
@@ -37,3 +37,4 @@
   "Searchable": ["Name", "Address 1", "Address 2", "Postcode", "Deliverer", "Status"]
 
 }
+
