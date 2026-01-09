@@ -24,11 +24,11 @@ Designed to handle **hundreds of active orders** efficiently while remaining lig
 
 ## 🧩 Tech Stack
 
-- **Backend:** Raw PHP (no framework)
-- **Database:** :contentReference[oaicite:0]{index=0}
-- **Frontend:** :contentReference[oaicite:1]{index=1} + custom CSS
-- **Interactivity:** :contentReference[oaicite:2]{index=2} + AJAX
-- **Maps:** :contentReference[oaicite:3]{index=3}
+- **Backend:** Raw PHP (Custom Framework)
+- **Database:** MySQL
+- **Frontend:** Bootstrap + custom CSS
+- **Interactivity:** JQuery + AJAX
+- **Maps:** Google Maps API
 - **Templating:** Layered `.phtml` structure
 
 ---
@@ -73,7 +73,7 @@ All access is enforced server-side.
 
 ### 🗺️ Maps & Location
 
-- Interactive maps using **:contentReference[oaicite:4]{index=4}**
+- Interactive maps using **Google Maps**
 - Custom map markers for parcel destinations
 - Browser-based location grabbing (with user consent)
 - Visual representation of delivery routes and endpoints
@@ -90,7 +90,7 @@ All access is enforced server-side.
 
 ### 🔍 Real-Time Search
 
-- Live data filtering using **:contentReference[oaicite:5]{index=5}** + AJAX
+- Live data filtering using **Search Filtering** + AJAX
 - Search through:
   - Orders
   - Users
@@ -134,7 +134,7 @@ Security is implemented at every layer.
 
 ### Responsive Design
 
-- Built with **:contentReference[oaicite:6]{index=6}**
+- Built with **Bootstrap**
 - Fully responsive layouts
 - Mobile-friendly tracking pages
 
@@ -155,7 +155,7 @@ This keeps the codebase readable and scalable despite being framework-free.
 
 ## 🗄️ Database Design
 
-- **:contentReference[oaicite:7]{index=7}**
+- **MySQL**
 - Normalised schema
 - Foreign key relationships between:
   - Users
